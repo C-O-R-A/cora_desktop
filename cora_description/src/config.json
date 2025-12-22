@@ -1,0 +1,57 @@
+{
+    "url": "https://cad.onshape.com/documents/971c71e558f4d758be7c1282/w/a52d355fced062b7019a3a28/e/e9a08b2016a881ad8b69894a",
+    "output_format": "urdf",
+    "output_filename": "robot",
+    "assets_directory": "assets",
+    "ignore_limits": true,
+    "draw_frames": true,
+    "no_dynamics": true,
+    "include_configuration_suffix": false,
+    "set_zero_mass_to_fixed": true,
+    "merge_stls": true,
+
+    
+    "joint_properties": {
+        "*": {
+            "max_effort": 10.0,
+            "max_velocity": 6.0,
+            "friction": 0.5
+        },
+        "J1": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        },
+        "J2": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        },
+        "J3": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        },
+        "J4": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        },
+        "J5": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        },
+        "J6": {
+            "max_effort": 20.0,
+            "max_velocity": 10.0,
+            "friction": 0.1,
+            "limits": [0.5, 1.2]
+        }
+    }
+}
