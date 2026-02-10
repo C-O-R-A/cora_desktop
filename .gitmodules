@@ -1,0 +1,4 @@
+[submodule "cora_common"]
+	path = cora_common
+	url = https://github.com/C-O-R-A/cora_common.git
+	branch = main
