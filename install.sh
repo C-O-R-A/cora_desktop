@@ -10,7 +10,8 @@ sudo apt install \
          ros-jazzy-gazebo-ros2-control-msgs\
 
 sudo apt-get install ros-${ROS_DISTRO}-ros-gz
-  ros-jazzy-gz-ros2-control \
+  ros-${ROS_DISTRO}-gazebo-ros-pkgs \
+  ros-${ROS_DISTRO}-gz-ros2-control \
 
 
 sudo rosdep-install
