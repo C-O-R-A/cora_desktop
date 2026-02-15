@@ -12,7 +12,7 @@ from launch.actions import (
     IncludeLaunchDescription,
     RegisterEventHandler,
     DeclareLaunchArgument,
-    TimerAction,
+    AppendEnvironmentVariable
 
 )
 from launch.event_handlers import OnProcessExit
@@ -45,7 +45,7 @@ def generate_launch_description():
     )
 
     # Gazebo resource path for cora meshes
-    gazebo_path = os.path.join(
+    gazebo_models_path = os.path.join(
         get_package_share_directory("cora_description"),
         "meshes"
     )
@@ -59,14 +59,16 @@ def generate_launch_description():
     #########################
     # Command Substitutions #
     #########################
-
-    Command(["export GZ_SIM_RESOURCE_PATH=$GAZEBO_MODEL_PATH:", gazebo_path])
-    Command(["export GZ_SIM_RESOURCE_PATH=$GAZEBO_MODEL_PATH:", gazebo_gripper_path])
-    # # GZ resources
-    # models = AppendEnvironmentVariable(
-    #     name='GZ_SIM_RESOURCE_PATH',
-    #     value=os.path.join(get_package_prefix('omnirob_description'), 'share')
-    # )
+    
+    # GZ resources
+    models = AppendEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=gazebo_models_path,
+    )
+    gripper_models = AppendEnvironmentVariable(
+        name='GZ_SIM_RESOURCE_PATH',
+        value=gazebo_gripper_path,
+    )
 
     ####################
     # Launch arguments #
@@ -75,6 +77,7 @@ def generate_launch_description():
     world_arg = DeclareLaunchArgument(
         "gazebo_world",
         description="Path to the Gazebo world file to load",
+        default_value='None'
     )
     arguments = [world_arg]
 
@@ -86,6 +89,17 @@ def generate_launch_description():
     #########
     # Nodes #
     #########
+    # Bridge
+    bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        output="screen",
+        arguments=[
+            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
+            "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
+        ]
+    )
 
     # Robot Spawner
     robot_spawner_node = Node(
@@ -110,7 +124,7 @@ def generate_launch_description():
                             output='screen'
     )
     
-    nodes = [robot_spawner_node, world_spawner_node]
+    nodes = [robot_spawner_node, world_spawner_node, bridge]
 
     ########################
     # Launch file Includes #
@@ -143,31 +157,32 @@ def generate_launch_description():
         }.items(),
     )
 
-    # Bridge
-    ros_gz_bridge_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory("ros_gz_bridge"), 
-                "launch", 
-                "ros_gz_bridge.launch.py"
-            )
-        ),
-        launch_arguments={
-            "bridge_name": "ros_gz_bridge",
-            "config_file": os.path.join(
-                get_package_share_directory("cora_gazebo"),
-                "config",
-                "ros_gz_bridge.yaml"
-            ),
-            "use_composition": "True",
-            "create_own_container": "True"
-        }.items(),
-    )
+    # # Bridge
+    # ros_gz_bridge_launch = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(
+    #             get_package_share_directory("ros_gz_bridge"), 
+    #             "launch", 
+    #             "ros_gz_bridge.launch.py"
+    #         )
+    #     ),
+    #     launch_arguments={
+    #         "bridge_name": "ros_gz_bridge",
+    #         "config_file": os.path.join(
+    #             get_package_share_directory("cora_gazebo"),
+    #             "config",
+    #             "ros_gz_bridge.yaml"
+    #         ),
+    #         "use_composition": "True",
+    #         "create_own_container": "True"
+    #     }.items(),
+    # )
 
 
     launch_files = [bringup_launch, 
                     gazebo_launch, 
-                    ros_gz_bridge_launch]
+                    # ros_gz_bridge_launch
+                    ]
     
     #############################
     # Event handlers and timers #
