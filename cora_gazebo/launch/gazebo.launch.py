@@ -5,7 +5,7 @@ ros2 launch cora_gazebo gazebo.launch.py gazebo_world:=../chess/gazebo/worlds/ch
 
 '''
 import os
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_share_directory, get_package_prefix
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.actions import (
@@ -13,7 +13,9 @@ from launch.actions import (
     RegisterEventHandler,
     DeclareLaunchArgument,
     TimerAction,
+
 )
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, Command
 from launch.conditions import IfCondition
@@ -35,11 +37,36 @@ def generate_launch_description():
         "bringup.launch.py"
     )
 
+    # Gazebo world file path
     main_world = os.path.join(
         get_package_share_directory("cora_gazebo"),
         "worlds",
         "main_world.sdf"
     )
+
+    # Gazebo resource path for cora meshes
+    gazebo_path = os.path.join(
+        get_package_share_directory("cora_description"),
+        "meshes"
+    )
+
+    # Gazebo resource path for cora gripper meshes
+    gazebo_gripper_path = os.path.join( 
+        get_package_share_directory("cora_gripper_1_description"), 
+        "meshes" 
+    )
+
+    #########################
+    # Command Substitutions #
+    #########################
+
+    Command(["export GZ_SIM_RESOURCE_PATH=$GAZEBO_MODEL_PATH:", gazebo_path])
+    Command(["export GZ_SIM_RESOURCE_PATH=$GAZEBO_MODEL_PATH:", gazebo_gripper_path])
+    # # GZ resources
+    # models = AppendEnvironmentVariable(
+    #     name='GZ_SIM_RESOURCE_PATH',
+    #     value=os.path.join(get_package_prefix('omnirob_description'), 'share')
+    # )
 
     ####################
     # Launch arguments #
@@ -64,10 +91,11 @@ def generate_launch_description():
     robot_spawner_node = Node(
                             package='ros_gz_sim',
                             executable='create',
-                            parameters=[{
-                                'name': 'cora',
-                                'topic': 'robot_description'
-                            }],
+                            arguments=[
+                                '-name', 'cora',
+                                '-topic', 'robot_description',
+                                '-allow_renaming', 'true'
+                            ],
                             output='screen',
                         )
     
@@ -75,10 +103,11 @@ def generate_launch_description():
     world_spawner_node = Node(
                             package='ros_gz_sim',
                             executable='create',
-                            parameters=[{
-                                'name': 'main_world',
-                                'file': gazebo_world
-                            }]
+                            arguments=[
+                                '-name', 'main_world',
+                                '-file', gazebo_world
+                            ],
+                            output='screen'
     )
     
     nodes = [robot_spawner_node, world_spawner_node]
@@ -94,8 +123,8 @@ def generate_launch_description():
         ),
         launch_arguments={
             "use_codi": "true",
-            "hardware": "Fake",
-            "gripper_package": "cora_gripper_1_description"
+            "hardware_type": "Gazebo",
+            # "gripper_package": "cora_gripper_1_description"
         }.items(),
     )
 
@@ -109,7 +138,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "gz_args": f"-r {main_world}",
+            "gz_args": f"-r {main_world} --verbose 4",
             "on_exit_shutdown": "true"
         }.items(),
     )
@@ -135,12 +164,27 @@ def generate_launch_description():
         }.items(),
     )
 
+
     launch_files = [bringup_launch, 
                     gazebo_launch, 
                     ros_gz_bridge_launch]
+    
+    #############################
+    # Event handlers and timers #
+    #############################
+
+    spawner_event_handler = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=robot_spawner_node,
+            on_exit=[bringup_launch],
+        )
+    )
+
+    event_handlers = [spawner_event_handler]
 
     return LaunchDescription(
         launch_files
         + nodes
         + arguments
+        # + event_handlers
     )

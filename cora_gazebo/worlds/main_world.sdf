@@ -5,25 +5,15 @@
     <!-- ================ -->
     <!--     Physics      -->
     <!-- ================ -->  
-    <physics name="1ms" type="ignored">
-      <max_step_size>0.001</max_step_size>
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.01</max_step_size>
       <real_time_factor>1.0</real_time_factor>
+      <enable_physics>true</enable_physics>
     </physics>
-
-    <physics name="no_collisions" type="ode">
-      <max_step_size>0.001</max_step_size>
-      <real_time_factor>1.0</real_time_factor>
-      <enable_physics>false</enable_physics>
-    </physics>
-
 
     <!-- ================ -->
     <!--     Plugins      -->
     <!-- ================ -->  
-    <plugin
-      filename="ignition-gazebo-physics-system"
-      name="ignition::gazebo::systems::Physics">
-    </plugin>
     <plugin
       filename="ignition-gazebo-user-commands-system"
       name="ignition::gazebo::systems::UserCommands">
@@ -38,20 +28,106 @@
     <!-- ============ -->
     <gui fullscreen="0">
 
-      <!-- 3D scene -->
-      <plugin filename="GzScene3D" name="3D View">
-        <ignition-gui>
-          <title>3D View</title>
-          <property type="bool" key="showTitleBar">false</property>
-          <property type="string" key="state">docked</property>
-        </ignition-gui>
-
-        <engine>ogre2</engine>
-        <scene>scene</scene>
-        <ambient_light>0.4 0.4 0.4</ambient_light>
-        <background_color>0.8 0.8 0.8</background_color>
-        <camera_pose>2 2 2 0 0.5 -2.5</camera_pose>
-      </plugin>
+      <!-- 3D scene --> 
+      <plugin filename="MinimalScene" name="3D View"> 
+        <gz-gui> 
+          <title>3D View</title> 
+          <property type="bool" key="showTitleBar">false</property> 
+          <property type="string" key="state">docked</property> 
+        </gz-gui> 
+        
+        <engine>ogre2</engine> 
+        <scene>scene</scene> 
+        <ambient_light>0.4 0.4 0.4</ambient_light> 
+        <background_color>0.8 0.8 0.8</background_color> 
+        <camera_pose>-6 0 6 0 0.5 0</camera_pose> 
+        <camera_clip> 
+          <near>0.25</near> 
+          <far>25000</far> 
+        </camera_clip> 
+      </plugin> 
+        
+      <!-- Plugins that add functionality to the scene --> 
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu"> 
+        <gz-gui> 
+          <property key="state" type="string">floating</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="GzSceneManager" name="Scene Manager"> 
+        <gz-gui> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="InteractiveViewControl" name="Interactive view control"> 
+        <gz-gui> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="CameraTracking" name="Camera Tracking"> 
+        <gz-gui> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="MarkerManager" name="Marker manager"> 
+        <gz-gui> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="SelectEntities" name="Select Entities"> 
+        <gz-gui> 
+          <anchors target="Select entities"> 
+            <line own="right" target="right"/> 
+            <line own="top" target="top"/> 
+          </anchors> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+      <plugin filename="VisualizationCapabilities" name="Visualization Capabilities"> 
+        <gz-gui> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
+        
+      <plugin filename="Spawn" name="Spawn Entities"> 
+        <gz-gui> 
+          <anchors target="Select entities"> 
+            <line own="right" target="right"/> 
+            <line own="top" target="top"/> 
+          </anchors> 
+          <property key="resizable" type="bool">false</property> 
+          <property key="width" type="double">5</property> 
+          <property key="height" type="double">5</property> 
+          <property key="state" type="string">floating</property> 
+          <property key="showTitleBar" type="bool">false</property> 
+        </gz-gui> 
+      </plugin> 
 
       <!-- World control -->
       <plugin filename="WorldControl" name="World control">
@@ -97,6 +173,103 @@
         <real_time>true</real_time>
         <real_time_factor>true</real_time_factor>
         <iterations>true</iterations>
+      </plugin>
+
+      <!-- Insert simple shapes -->
+      <plugin filename="Shapes" name="Shapes">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">0</property>
+          <property key="y" type="double">0</property>
+          <property key="width" type="double">250</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Insert lights -->
+      <plugin filename="Lights" name="Lights">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">250</property>
+          <property key="y" type="double">0</property>
+          <property key="width" type="double">150</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#666666</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Translate / rotate -->
+      <plugin filename="TransformControl" name="Transform control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">0</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">250</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Screenshot -->
+      <plugin filename="Screenshot" name="Screenshot">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">250</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">50</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Video recorder -->
+      <plugin filename="VideoRecorder" name="VideoRecorder">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="x" type="double">300</property>
+          <property key="y" type="double">50</property>
+          <property key="width" type="double">50</property>
+          <property key="height" type="double">50</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+          <property key="cardBackground" type="string">#777777</property>
+        </gz-gui>
+
+        <record_video>
+          <use_sim_time>true</use_sim_time>
+          <lockstep>true</lockstep>
+          <bitrate>4000000</bitrate>
+        </record_video>
+      </plugin>
+
+      <!-- Inspector -->
+      <plugin filename="ComponentInspector" name="Component inspector">
+        <gz-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- Entity tree -->
+      <plugin filename="EntityTree" name="Entity tree">
+        <gz-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </gz-gui>
+      </plugin>
+
+      <!-- View angle -->
+      <plugin filename="ViewAngle" name="View angle">
+        <gz-gui>
+          <property type="string" key="state">docked_collapsed</property>
+        </gz-gui>
       </plugin>
     </gui>
 
@@ -149,4 +322,3 @@
 
   </world>
 </sdf>
-

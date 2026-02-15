@@ -71,3 +71,31 @@ export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$LD_LIBRA
 # End effector should have parent link L5, not end effector
 #
 # In controllers.yaml, for the gripperaction controller, 'joints' --> 'joint'
+
+
+        <!-- <gazebo reference="Camera" >
+            <sensor name="Camera" type="camera">
+                <camera>
+                    <horizontal_fov>0.86</horizontal_fov>
+                    <image>
+                        <width>1280</width>
+                        <height>720</height>
+                        <!-- <format>R8G8B8</format> -->
+                    </image>
+                    <clip>
+                        <near>0.02</near>
+                        <far>300</far>
+                    </clip>
+                    <noise>
+                        <type>gaussian</type>
+                        <mean>0.0</mean>
+                        <stddev>0.007</stddev>
+                    </noise>
+                </camera>
+                <always_on>1</always_on>
+                <gz_frame_id>Camera_frame</gz_frame_id>
+                <topic>gz_gripper_cam</topic>
+                <update_rate>30.0</update_rate>
+                <visualize>true</visualize>
+            </sensor>
+        </gazebo> -->
