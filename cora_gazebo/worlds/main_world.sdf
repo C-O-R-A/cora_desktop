@@ -22,6 +22,10 @@
       filename="ignition-gazebo-scene-broadcaster-system"
       name="ignition::gazebo::systems::SceneBroadcaster">
     </plugin>
+    <plugin
+      filename="ignition-gazebo-physics-system"
+      name="ignition::gazebo::systems::Physics">
+    </plugin>
 
     <!-- ============ -->
     <!--     GUI      -->
@@ -148,7 +152,7 @@
 
         <play_pause>true</play_pause>
         <step>true</step>
-        <start_paused>true</start_paused>
+        <start_paused>false</start_paused>
 
       </plugin>
 

@@ -9,13 +9,10 @@
         <!-- ===================== -->
         <gazebo>
 
-            <!-- <plugin filename="gz_ros2_control-system"
+            <plugin filename="gz_ros2_control-system"
                     name="gz_ros2_control::GazeboSimROS2ControlPlugin">
                 <parameters>$(find cora_moveit_config)/config/ros2_controllers.yaml</parameters>
-            </plugin> -->
-
-            <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-                <parameters>$(find cora_moveit_config)/config/ros2_controllers.yaml</parameters>
+                <controller_manager_prefix_node_name>controller_manager</controller_manager_prefix_node_name>
             </plugin>
 
             <!-- <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
