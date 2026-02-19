@@ -26,19 +26,6 @@ from launch.event_handlers import (
 import os
 from moveit_configs_utils import MoveItConfigsBuilder
 
-
-def load_yaml(package_name, file_path):
-    package_path = get_package_share_directory(package_name)
-    absolute_file_path = os.path.join(package_path, file_path)
-
-    try:
-        with open(absolute_file_path, "r") as file:
-            return yaml.safe_load(file)
-    except (
-        EnvironmentError
-    ):  # parent of IOError, OSError *and* WindowsError where available
-        return None
-
 def generate_launch_description():
 
     ##############
@@ -84,23 +71,6 @@ def generate_launch_description():
 
     robot_description = {"robot_description": robot_description_content}
 
-    #################
-    # Moveit Config #
-    #################
-
-    # Build configs WITHOUT calling robot_description() yet
-    builder = MoveItConfigsBuilder(robot_name="cora", package_name="cora_moveit_config")
-    builder.trajectory_execution(file_path="config/moveit_controllers.yaml")
-    builder.moveit_cpp(
-        file_path=get_package_share_directory("cora_moveit")
-        + "/config/cora_moveit.yaml"
-    )
-
-    # Override robot_description so it uses runtime Command(...)
-    builder.robot_description = lambda: robot_description
-
-    moveit_config = builder.to_moveit_configs()
-
     #########################
     # Command Substitutions #
     #########################
@@ -129,71 +99,12 @@ def generate_launch_description():
     ########################
     # Launch Configuration #
     ########################
+
     gazebo_world = LaunchConfiguration("gazebo_world", default="None")
 
     #########
     # Nodes #
     #########
-
-    # Rviz config
-    rviz_config_file = os.path.join(
-        get_package_share_directory("cora_moveit_config"),
-        "config",
-        "moveit.rviz",
-    )
-
-    # Rviz node
-    rviz_node = Node(
-        package="rviz2",
-        executable="rviz2",
-        output="log",
-        arguments=["-d", rviz_config_file],
-        parameters=[
-            robot_description,
-            moveit_config.robot_description_semantic,
-            moveit_config.robot_description_kinematics,
-        ],
-    )
-
-    move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
-        output="screen",
-        parameters=[
-            moveit_config.to_dict(),
-        ],
-    )
-
-    # Static Transforms
-    static_tf = Node(
-        package="tf2_ros",
-        executable="static_transform_publisher",
-        name="static_transform_publisher",
-        output="log",
-        arguments=["--frame-id", "world", "--child-frame-id", "base_link"],
-    )
-
-    # Ros 2 controllers config
-    ros2_controllers_path = os.path.join(
-        get_package_share_directory("cora_moveit_config"),
-        "config",
-        "ros2_controllers.yaml",
-    )
-
-    joint_state_broadcaster_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['joint_state_broadcaster'],
-    )
-
-    arm_controller_spawner = Node(
-        package='controller_manager',
-        executable='spawner',
-        arguments=['arm_controller',
-                   '--param-file',
-                   ros2_controllers_path,
-                   ],
-    )
 
     # Robot State Publisher
     robot_state_publisher = Node(
@@ -245,16 +156,16 @@ def generate_launch_description():
     # Launch file Includes #
     ########################
 
-    # # Bringup launch file
-    # bringup_launch = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(bringup_launch_dir),
-    #     launch_arguments={
-    #         "use_codi": "true",
-    #         "hardware_type": "Gazebo",
-    #         "launch_rsp": "false",
-    #         # "gripper_package": "cora_gripper_1_description"
-    #     }.items(),
-    # )
+    # Bringup launch file
+    bringup_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(bringup_launch_dir),
+        launch_arguments={
+            "use_codi": "true",
+            "hardware_type": "Gazebo",
+            "launch_rsp": "false",
+            # "gripper_package": "cora_gripper_1_description"
+        }.items(),
+    )
 
     # Gazebo sim
     gazebo_launch = IncludeLaunchDescription(
@@ -281,25 +192,11 @@ def generate_launch_description():
     spawner_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=robot_spawner_node,
-            on_exit=[joint_state_broadcaster_spawner],
+            on_exit=[bringup_launch],
         )
     )
 
-    spawner_event_handler_2 = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=joint_state_broadcaster_spawner,
-            on_exit=[arm_controller_spawner],
-        )
-    )
-
-    spawner_event_handler_3 = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=arm_controller_spawner,
-            on_exit=[gazebo_launch],
-        )
-    )
-
-    event_handlers = [spawner_event_handler, spawner_event_handler_2]
+    event_handlers = [spawner_event_handler]
 
     return LaunchDescription(
         launch_files
