@@ -52,6 +52,13 @@ def generate_launch_description():
     gazebo_gripper_path = os.path.join(
         get_package_share_directory("cora_gripper_1_description"), "meshes"
     )
+    ########################
+    # Launch Configuration #
+    ########################
+
+    gazebo_world = LaunchConfiguration("gazebo_world", default="None")
+    hardware_type = LaunchConfiguration("hardware_type", default="Gazebo")
+    gripper_package = LaunchConfiguration("gripper_package", default="cora_gripper_1_description")
 
     #####################
     # Robot Description #
@@ -65,8 +72,8 @@ def generate_launch_description():
             ),
             " hardware_type:=",
             "Gazebo",
-            # " gripper_package:=",
-            # gripper_package,
+            " gripper_package:=",
+            gripper_package,
         ]
     )
 
@@ -100,11 +107,22 @@ def generate_launch_description():
         )
     )
 
-    ########################
-    # Launch Configuration #
-    ########################
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "gripper_package",
+            description="Path to the Gazebo world file to load",
+            default_value="cora_gripper_1_description",
+        )
+    )
 
-    gazebo_world = LaunchConfiguration("gazebo_world", default="None")
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "hardware_type",
+            description="Path to the Gazebo world file to load",
+            default_value="Gazebo",
+        )
+    )
+
 
     #########
     # Nodes #
@@ -115,7 +133,7 @@ def generate_launch_description():
         package="robot_state_publisher",
         executable="robot_state_publisher",
         name="robot_state_publisher",
-        output="log",
+        output="screen",
         parameters=[robot_description],
     )
 
