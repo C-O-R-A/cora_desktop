@@ -100,8 +100,3 @@ export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$LD_LIBRA
             </sensor>
         </gazebo> -->
 
-
-colcon build --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
-
-ros2 run --prefix 'gdbserver localhost:3000' [package_name] [executable_name]
-

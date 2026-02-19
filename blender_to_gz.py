@@ -100,14 +100,15 @@ def export_sdf(prefix_path):
         return ""
     
     sdf = ET.Element('sdf', attrib={'version':'1.9'})
-
-    # 1 model and 1 link
-    model = ET.SubElement(sdf, "model", attrib={"name":"test"})
+    model = ET.SubElement(sdf, "model", attrib={"name":"model"})
     static = ET.SubElement(model, "static")
     static.text = "true"
-    link = ET.SubElement(model, "link", attrib={"name":"testlink"})
+
     # for each geometry in geometry library add a <visual> tag
     for o in mesh_objects:
+
+        link = ET.SubElement(model, "link", attrib={"name":f"{o.name}_link"})
+
         # If object has multiple materials, create a visual per material slot
         materials = o.data.materials if hasattr(o.data, 'materials') else []
         if not materials or len(materials) == 0:
@@ -179,7 +180,7 @@ def export_sdf(prefix_path):
                 diffuse = ET.SubElement(material_elem, "diffuse")
                 diffuse.text = f"{base_color_rgb[0]} {base_color_rgb[1]} {base_color_rgb[2]} {base_color_rgb[3]}"
                 specular = ET.SubElement(material_elem, "specular")
-                specular.text = "0.0 0.0 0.0 1.0"
+                specular.text = f"{roughness} {roughness} {roughness} {roughness}"
                 pbr = ET.SubElement(material_elem, "pbr")
                 metal = ET.SubElement(pbr, "metal")
                 if diffuse_map != "":
