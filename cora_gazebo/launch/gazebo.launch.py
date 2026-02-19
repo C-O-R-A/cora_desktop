@@ -26,6 +26,7 @@ from launch.event_handlers import (
 import os
 from moveit_configs_utils import MoveItConfigsBuilder
 
+
 def generate_launch_description():
 
     ##############
@@ -89,12 +90,15 @@ def generate_launch_description():
     # Launch arguments #
     ####################
 
-    world_arg = DeclareLaunchArgument(
-        "gazebo_world",
-        description="Path to the Gazebo world file to load",
-        default_value="None",
+    declared_arguments = []
+
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "gazebo_world",
+            description="Path to the Gazebo world file to load",
+            default_value="None",
+        )
     )
-    arguments = [world_arg]
 
     ########################
     # Launch Configuration #
@@ -123,7 +127,7 @@ def generate_launch_description():
         arguments=[
             "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
             "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
-            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
         ],
     )
 
@@ -163,6 +167,7 @@ def generate_launch_description():
             "use_codi": "true",
             "hardware_type": "Gazebo",
             "launch_rsp": "false",
+            "use_sim_time": "true",
             # "gripper_package": "cora_gripper_1_description"
         }.items(),
     )
@@ -177,7 +182,7 @@ def generate_launch_description():
         launch_arguments={
             "gz_args": f"-r {main_world} --verbose 4",
             "on_exit_shutdown": "true",
-            "debug": "true"
+            "debug": "true",
         }.items(),
     )
 
@@ -198,9 +203,4 @@ def generate_launch_description():
 
     event_handlers = [spawner_event_handler]
 
-    return LaunchDescription(
-        launch_files
-        + nodes
-        + arguments
-        + event_handlers
-    )
+    return LaunchDescription(launch_files + nodes + declared_arguments + event_handlers)
