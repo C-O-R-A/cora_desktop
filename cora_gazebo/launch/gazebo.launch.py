@@ -1,7 +1,7 @@
 """
 
 launch:
-ros2 launch cora_gazebo gazebo.launch.py gazebo_world:=../chess/gazebo/worlds/chess_world.sdf
+ros2 launch cora_gazebo gazebo.launch.py gazebo_world:=../chess/gazebo/worlds/world_2/chess_world.sdf
 
 """
 
@@ -14,6 +14,7 @@ from launch.actions import (
     RegisterEventHandler,
     DeclareLaunchArgument,
     AppendEnvironmentVariable,
+    ExecuteProcess,
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
@@ -25,7 +26,6 @@ from launch.event_handlers import (
 )
 import os
 from moveit_configs_utils import MoveItConfigsBuilder
-
 
 def generate_launch_description():
 
@@ -93,6 +93,14 @@ def generate_launch_description():
         value=gazebo_gripper_path,
     )
 
+    get_height = ExecuteProcess(
+        cmd=[
+            "bash", "-c",
+            "gz topic -e -t /world/main_world/scene/info | grep robot_link -A 20"
+        ],
+        output="screen"
+    )
+
     ####################
     # Launch arguments #
     ####################
@@ -154,12 +162,15 @@ def generate_launch_description():
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-name",
-            "cora",
-            "-topic",
-            "robot_description",
-            "-allow_renaming",
-            "true",
+            "-name", "cora",
+            "-topic", "robot_description",
+            "-allow_renaming", "true",
+            "-x", "0.0",
+            "-y", "0.4",
+            "-z", "0.82",
+            "-R", "0.0",
+            "-P", "0.0",
+            "-Y", "-1.570796326",
         ],
         output="screen",
     )
@@ -186,7 +197,7 @@ def generate_launch_description():
             "hardware_type": "Gazebo",
             "launch_rsp": "false",
             "use_sim_time": "true",
-            # "gripper_package": "cora_gripper_1_description"
+            "gripper_package": "cora_gripper_1_description"
         }.items(),
     )
 
@@ -212,13 +223,27 @@ def generate_launch_description():
     # Event handlers and timers #
     #############################
 
-    spawner_event_handler = RegisterEventHandler(
+    # get_height_event_handler = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=world_spawner_node,
+    #         on_exit=[get_height],
+    #     )
+    # )
+
+    # robot_spawner_event_handler = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=,
+    #         on_exit=[robot_spawner_node],
+    #     )
+    # )
+
+    bringup_spawner_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=robot_spawner_node,
             on_exit=[bringup_launch],
         )
     )
 
-    event_handlers = [spawner_event_handler]
+    event_handlers = [bringup_spawner_event_handler]
 
     return LaunchDescription(launch_files + nodes + declared_arguments + event_handlers)

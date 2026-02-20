@@ -323,6 +323,16 @@
         </visual>
       </link>
     </model>
+<!-- 
+    <joint name="robot_to_table" type="fixed">
+      <parent>chess::robot_link</parent>
+      <child>ground_plane::ground</child>
+    </joint>
+
+    <joint name="robot_to_table" type="fixed">
+      <parent>chess::robot_link</parent>
+      <child>cora::base_link</child>
+    </joint> -->
 
   </world>
 </sdf>
