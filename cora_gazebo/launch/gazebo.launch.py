@@ -183,7 +183,7 @@ def generate_launch_description():
         output="screen",
     )
 
-    nodes = [robot_state_publisher, robot_spawner_node, world_spawner_node, bridge]
+    nodes = [robot_state_publisher, robot_spawner_node, world_spawner_node]
 
     ########################
     # Launch file Includes #
@@ -215,27 +215,35 @@ def generate_launch_description():
         }.items(),
     )
 
+    # Bridge
+    ros_gz_bridge_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("ros_gz_bridge"), 
+                "launch", 
+                "ros_gz_bridge.launch.py"
+            )
+        ),
+        launch_arguments={
+            "bridge_name": "ros_gz_bridge",
+            "config_file": os.path.join(
+                get_package_share_directory("cora_gazebo"),
+                "config",
+                "ros_gz_bridge.yaml"
+            ),
+            # "use_composition": "True",
+            # "create_own_container": "True"
+        }.items(),
+    )
+
     launch_files = [
         gazebo_launch,
+        ros_gz_bridge_launch,
     ]
 
     #############################
     # Event handlers and timers #
     #############################
-
-    # get_height_event_handler = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=world_spawner_node,
-    #         on_exit=[get_height],
-    #     )
-    # )
-
-    # robot_spawner_event_handler = RegisterEventHandler(
-    #     event_handler=OnProcessExit(
-    #         target_action=,
-    #         on_exit=[robot_spawner_node],
-    #     )
-    # )
 
     bringup_spawner_event_handler = RegisterEventHandler(
         event_handler=OnProcessExit(

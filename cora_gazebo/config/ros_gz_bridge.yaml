@@ -1,17 +1,15 @@
-# # Camera bridge configuration.
-# - ros_topic_name: "gripper_cam/camera"
-#   gz_topic_name: "gz_gripper_cam/camera"
-#   ros_type_name: "sensor_msgs/msg/Image"
-#   gz_type_name: "gz.msgs.Image"
-#   lazy: true
-#   direction: GZ_TO_ROS
+# Camera bridge configuration.
+- ros_topic_name: /gripper_cam/image_raw
+  gz_topic_name: /world/main_world/model/cora/link/endeffector/sensor/gz_gripper_cam/image
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
 
-# - ros_topic_name: "gripper_cam/camera_info"
-#   gz_topic_name: "gz_gripper_cam/camera_info"
-#   ros_type_name: "sensor_msgs/msg/CameraInfo"
-#   gz_type_name: "gz.msgs.CameraInfo"
-#   lazy: true
-#   direction: GZ_TO_ROS
+- ros_topic_name: /gripper_cam/camera_info
+  gz_topic_name: /world/main_world/model/cora/link/endeffector/sensor/gz_gripper_cam/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
 
 - ros_topic_name: "/joint_states"
   gz_topic_name: "/world/default/model/double_pendulum_with_base0/joint_state"
