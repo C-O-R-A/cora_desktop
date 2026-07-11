@@ -1,102 +1,77 @@
-sudo apt install \
-         ros-jazzy\
-         ros-jazzy-ros2-control\
-         ros-jazzy-ros2-controllers\
-         ros-jazzy-moveit\
-         ros-jazzy-moveit-py\
-         ros-jazzy-moveit-servo\
-         ros-jazzy-gazebo-ros2-control\
-         ros-jazzy-gazebo-ros2-control-plugins\
-         ros-jazzy-gazebo-ros2-control-msgs\
+#!/usr/bin/env bash
+set -euo pipefail
 
-sudo apt-get install ros-${ROS_DISTRO}-ros-gz
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SRC_DIR="$ROOT/src"
+BASHRC="$HOME/.bashrc"
+ROS_DISTRO="${ROS_DISTRO:-jazzy}"
+
+if [ ! -d "$SRC_DIR" ]; then
+  echo "ERROR: expected workspace root at $ROOT with a src/ folder."
+  exit 1
+fi
+
+if [ "$(id -u)" -eq 0 ]; then
+  echo "WARNING: running as root is not recommended. The script will still use sudo for system installs."
+fi
+
+echo "Workspace root: $ROOT"
+echo "ROS distro: $ROS_DISTRO"
+
+if [ -f "$ROOT/.gitmodules" ] || [ -f "$SRC_DIR/.gitmodules" ]; then
+  echo "Updating git submodules..."
+  git submodule update --init --recursive
+fi
+
+sudo apt update
+sudo apt install -y \
+  python3-pip \
+  python3-colcon-common-extensions \
+  python3-rosdep \
+  python3-vcstool \
+  python3-rosinstall-generator \
+  ros-${ROS_DISTRO}-desktop \
+  ros-${ROS_DISTRO}-ros2-control \
+  ros-${ROS_DISTRO}-ros2-controllers \
+  ros-${ROS_DISTRO}-moveit \
+  ros-${ROS_DISTRO}-moveit-py \
+  ros-${ROS_DISTRO}-moveit-servo \
   ros-${ROS_DISTRO}-gazebo-ros-pkgs \
   ros-${ROS_DISTRO}-gz-ros2-control \
+  ros-${ROS_DISTRO}-gz-ros2-control-plugins \
+  ros-${ROS_DISTRO}-gz-ros2-control-msgs \
+  ros-${ROS_DISTRO}-ros-gz
 
+sudo apt upgrade -y
 
-sudo rosdep-install
+python3 -m pip install --upgrade pip
 
-pip install -r requirements.txt
+sudo rosdep update
+rosdep install --from-paths "$SRC_DIR" --ignore-src -r -y
 
-sudo apt update && sudo apt upgrade
+if [ -f "$SRC_DIR/requirements.txt" ]; then
+  python3 -m pip install -r "$SRC_DIR/requirements.txt"
+fi
+if [ -f "$SRC_DIR/cora_common/requirements.txt" ]; then
+  python3 -m pip install -r "$SRC_DIR/cora_common/requirements.txt"
+fi
+if [ -f "$ROOT/requirements.txt" ]; then
+  python3 -m pip install -r "$ROOT/requirements.txt"
+fi
 
-cd .. && colcon build --symlink-install
+colcon build --symlink-install
 
-source /opt/ros/jazzy/setup.bash
-echo "source /opt/ros/jazzy/setup.bash" >> ./bashrc
-source /install/setup.bash
-echo "source /install/setup.bash" >> ./bashrc
-export LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+source "/opt/ros/${ROS_DISTRO}/setup.bash"
+if ! grep -Fxq "source /opt/ros/${ROS_DISTRO}/setup.bash" "$BASHRC"; then
+  echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> "$BASHRC"
+fi
 
-# set -e
+if [ -f "$ROOT/install/setup.bash" ]; then
+  source "$ROOT/install/setup.bash"
+  if ! grep -Fxq "source $ROOT/install/setup.bash" "$BASHRC"; then
+    echo "source $ROOT/install/setup.bash" >> "$BASHRC"
+  fi
+fi
 
-# echo "Setting ethernet hostname to cora"
-# sudo hostnamectl set-hostname cora
-
-# echo "Installing Avahi"
-# sudo apt update
-# sudo apt install -y avahi-daemon
-
-# echo "Enabling Avahi"
-# sudo systemctl enable avahi-daemon
-# sudo systemctl start avahi-daemon
-
-# echo "Done. Reboot recommended."
-
-# run with: './install.sh'
-
-# NOTES
-# To get the moveit setup assistant working in vscode, unset the gtk path using 'unset GTK_PATH'
-#
-# Make sure cmake file contains:
-#
-# install(
-#   DIRECTORY
-#       <folder_name>
-#   DESTINATION share/${PROJECT_NAME}
-# )
-#
-# Also make sure onshape config files are in the source root and point to 'description_pkg/meshes/' and not to 'meshes/'
-# 
-# if the setup assistant segfaults after clicking load model, install older rviz snapshot: https://github.com/moveit/moveit2/issues/3546#issuecomment-32666
-#   wget http://snapshots.ros.org/jazzy/2025-05-23/ubuntu/pool/main/r/ros-jazzy-rviz-common/ros-jazzy-rviz-common_14.1.11-1noble.20250520.201719_amd64.deb
-#
-#   sudo apt --fix-broken install
-#
-#   sudo dpkg -i ros-jazzy-rviz-common_14.1.11-1noble.20250520.201719_amd64.deb
-#
-#
-# You must add accell limits to joint limits config file
-#
-# End effector should have parent link L5, not end effector
-#
-# In controllers.yaml, for the gripperaction controller, 'joints' --> 'joint'
-
-
-        <!-- <gazebo reference="Camera" >
-            <sensor name="Camera" type="camera">
-                <camera>
-                    <horizontal_fov>0.86</horizontal_fov>
-                    <image>
-                        <width>1280</width>
-                        <height>720</height>
-                        <!-- <format>R8G8B8</format> -->
-                    </image>
-                    <clip>
-                        <near>0.02</near>
-                        <far>300</far>
-                    </clip>
-                    <noise>
-                        <type>gaussian</type>
-                        <mean>0.0</mean>
-                        <stddev>0.007</stddev>
-                    </noise>
-                </camera>
-                <always_on>1</always_on>
-                <gz_frame_id>Camera_frame</gz_frame_id>
-                <topic>gz_gripper_cam</topic>
-                <update_rate>30.0</update_rate>
-                <visualize>true</visualize>
-            </sensor>
-        </gazebo> -->
+echo "Install complete. Run 'source /opt/ros/${ROS_DISTRO}/setup.bash' and 'source $ROOT/install/setup.bash' to use the workspace."
 

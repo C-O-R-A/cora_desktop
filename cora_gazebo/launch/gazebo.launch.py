@@ -1,9 +1,6 @@
-"""
-
-launch:
-ros2 launch cora_gazebo gazebo.launch.py gazebo_world:=../chess/gazebo/worlds/world_2/chess_world.sdf
-
-"""
+'''
+ros2 launch cora_gazebo gazebo.launch.py gazebo_world:=../chess/gazebo/worlds/chess/chess.sdf
+'''
 
 import os
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
@@ -18,7 +15,12 @@ from launch.actions import (
 )
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
+from launch.substitutions import (
+    LaunchConfiguration,
+    Command,
+    PathJoinSubstitution,
+    PythonExpression,
+)
 from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 from launch.event_handlers import (
@@ -26,6 +28,7 @@ from launch.event_handlers import (
 )
 import os
 from moveit_configs_utils import MoveItConfigsBuilder
+
 
 def generate_launch_description():
 
@@ -38,11 +41,6 @@ def generate_launch_description():
         get_package_share_directory("cora_bringup"), "launch", "bringup.launch.py"
     )
 
-    # Gazebo world file path
-    main_world = os.path.join(
-        get_package_share_directory("cora_gazebo"), "worlds", "main_world.sdf"
-    )
-
     # Gazebo resource path for cora meshes
     gazebo_models_path = os.path.join(
         get_package_share_directory("cora_description"), "meshes"
@@ -52,13 +50,15 @@ def generate_launch_description():
     gazebo_gripper_path = os.path.join(
         get_package_share_directory("cora_gripper_1_description"), "meshes"
     )
+
     ########################
     # Launch Configuration #
     ########################
 
     gazebo_world = LaunchConfiguration("gazebo_world", default="None")
-    hardware_type = LaunchConfiguration("hardware_type", default="Gazebo")
-    gripper_package = LaunchConfiguration("gripper_package", default="cora_gripper_1_description")
+    gripper_package = LaunchConfiguration(
+        "gripper_package", default="cora_gripper_1_description"
+    )
 
     #####################
     # Robot Description #
@@ -93,13 +93,22 @@ def generate_launch_description():
         value=gazebo_gripper_path,
     )
 
-    get_height = ExecuteProcess(
-        cmd=[
-            "bash", "-c",
-            "gz topic -e -t /world/main_world/scene/info | grep robot_link -A 20"
-        ],
-        output="screen"
+    world_models = AppendEnvironmentVariable(
+        name="GZ_SIM_RESOURCE_PATH",
+        value=os.path.abspath(
+            os.path.join(
+                get_package_prefix("cora_gazebo"),
+                "..",
+                "..",
+                "chess",
+                "gazebo",
+                "worlds",
+                "chess",
+            )
+        ),
     )
+
+    commands = [models, gripper_models, world_models]
 
     ####################
     # Launch arguments #
@@ -131,7 +140,6 @@ def generate_launch_description():
         )
     )
 
-
     #########
     # Nodes #
     #########
@@ -145,45 +153,34 @@ def generate_launch_description():
         parameters=[robot_description],
     )
 
-    # Bridge
-    bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        output="screen",
-        arguments=[
-            "/joint_states@sensor_msgs/msg/JointState[gz.msgs.Model",
-            "/tf@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V",
-            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-        ],
-    )
-
     # Robot Spawner
     robot_spawner_node = Node(
         package="ros_gz_sim",
         executable="create",
         arguments=[
-            "-name", "cora",
-            "-topic", "robot_description",
-            "-allow_renaming", "true",
-            "-x", "0.0",
-            "-y", "0.4",
-            "-z", "0.82",
-            "-R", "0.0",
-            "-P", "0.0",
-            "-Y", "-1.570796326",
+            "-name",
+            "cora",
+            "-topic",
+            "robot_description",
+            "-allow_renaming",
+            "true",
+            "-x",
+            "0.0",
+            "-y",
+            "0.4",
+            "-z",
+            "0.82",
+            "-R",
+            "0.0",
+            "-P",
+            "0.0",
+            "-Y",
+            "-1.570796326",
         ],
         output="screen",
     )
 
-    # World model spawner
-    world_spawner_node = Node(
-        package="ros_gz_sim",
-        executable="create",
-        arguments=["-name", "main_world", "-file", gazebo_world],
-        output="screen",
-    )
-
-    nodes = [robot_state_publisher, robot_spawner_node, world_spawner_node]
+    nodes = [robot_state_publisher, robot_spawner_node]
 
     ########################
     # Launch file Includes #
@@ -197,7 +194,7 @@ def generate_launch_description():
             "hardware_type": "Gazebo",
             "launch_rsp": "false",
             "use_sim_time": "true",
-            "gripper_package": "cora_gripper_1_description"
+            "gripper_package": "cora_gripper_1_description",
         }.items(),
     )
 
@@ -209,7 +206,7 @@ def generate_launch_description():
             )
         ),
         launch_arguments={
-            "gz_args": f"-r {main_world} --verbose 4",
+            "gz_args": ["-r ", gazebo_world, " --verbose", " 4"],
             "on_exit_shutdown": "true",
             "debug": "true",
         }.items(),
@@ -219,9 +216,9 @@ def generate_launch_description():
     ros_gz_bridge_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(
-                get_package_share_directory("ros_gz_bridge"), 
-                "launch", 
-                "ros_gz_bridge.launch.py"
+                get_package_share_directory("ros_gz_bridge"),
+                "launch",
+                "ros_gz_bridge.launch.py",
             )
         ),
         launch_arguments={
@@ -229,7 +226,7 @@ def generate_launch_description():
             "config_file": os.path.join(
                 get_package_share_directory("cora_gazebo"),
                 "config",
-                "ros_gz_bridge.yaml"
+                "ros_gz_bridge.yaml",
             ),
             # "use_composition": "True",
             # "create_own_container": "True"
@@ -254,4 +251,6 @@ def generate_launch_description():
 
     event_handlers = [bringup_spawner_event_handler]
 
-    return LaunchDescription(launch_files + nodes + declared_arguments + event_handlers)
+    return LaunchDescription(
+        launch_files + nodes + declared_arguments + event_handlers + commands
+    )
