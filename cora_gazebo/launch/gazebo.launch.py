@@ -55,7 +55,10 @@ def generate_launch_description():
     # Launch Configuration #
     ########################
 
-    gazebo_world = LaunchConfiguration("gazebo_world", default="None")
+    default_gazebo_world = os.path.join(
+        get_package_share_directory("cora_gazebo"), "worlds", "main_world.sdf"
+    )
+    gazebo_world = LaunchConfiguration("gazebo_world", default=default_gazebo_world)
     gripper_package = LaunchConfiguration(
         "gripper_package", default="cora_gripper_1_description"
     )
@@ -120,7 +123,7 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "gazebo_world",
             description="Path to the Gazebo world file to load",
-            default_value="None",
+            default_value=default_gazebo_world,
         )
     )
 
