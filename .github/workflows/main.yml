@@ -16,5 +16,5 @@ jobs:
         uses: ros-tooling/action-ros-ci@v0.4
         with:
           target-ros2-distro: jazzy
-          path: path: ${{ steps.action_ros_ci_step.outputs.ros-workspace-directory-name }}/log
+          path: ${{ steps.action_ros_ci_step.outputs.ros-workspace-directory-name }}/log
         if: always() 
