@@ -22,5 +22,5 @@ jobs:
         uses: actions/upload_artifact@v4
         with:
           name: logs
-          path: ros2_ws/log/
+          path: ros_ws/log/
           if-no-files-found: warn
